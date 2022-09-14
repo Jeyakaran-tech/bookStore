@@ -1,17 +1,22 @@
  steps:
  # Build the container image
  - name: 'gcr.io/cloud-builders/docker'
-   args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA', '.']
+   args: ['build', '-t', 'gcr.io/$PROJECT_ID/cardamomprice:$COMMIT_SHA', '.']
  # Push the container image to Container Registry
  - name: 'gcr.io/cloud-builders/docker'
-   args: ['push',  'us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA']
+   args: ['push', 'gcr.io/$PROJECT_ID/cardamomprice:$COMMIT_SHA']
  # Deploy container image to Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['run', 'deploy', 'helloworld-${SHORT_SHA}', 
-           '--image=us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA', 
-           '--region', 'us-central1', '--platform', 'managed']
+ - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+   entrypoint: gcloud
+   args:
+   - 'run'
+   - 'deploy'
+   - 'cardamomprice'
+   - '--image'
+   - 'gcr.io/$PROJECT_ID/cardamomprice:$COMMIT_SHA'
+   - '--region'
+   - 'australia-southeast2'
  images:
-  - us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA
+ - 'gcr.io/$PROJECT_ID/cardamomprice:$COMMIT_SHA'
  options:
    logging: CLOUD_LOGGING_ONLY
-   
