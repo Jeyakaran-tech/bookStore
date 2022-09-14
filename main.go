@@ -35,7 +35,7 @@ func main() {
 	// connect to the DB
 	db, err := gorm.Open(
 		"postgres",
-		fmt.Sprintf("host=127.0.0.1 port=%s user=%s password=%s sslmode=disable", os.Getenv("PORT"), user, pass),
+		fmt.Sprintf("host=0.0.0.0 port=%s user=%s password=%s sslmode=disable", os.Getenv("PORT"), user, pass),
 	)
 	if err != nil {
 		panic(err)
