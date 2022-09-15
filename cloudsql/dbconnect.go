@@ -45,7 +45,7 @@ func createTable(db *sql.DB) error {
 		Published_date DATE NOT NULL, 
 		Price DOUBLE NOT NULL, 
 		In_Stock BOOL NOT NULL, 
-		time_added DATETIME NOT NULL)
+		time_added DATETIME NOT NULL
 	);`
 	_, err := db.Exec(createBook)
 	return err
