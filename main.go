@@ -81,5 +81,23 @@ func connectWithConnector() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
+	createErr := migrateDB(dbPool)
+	if createErr != nil {
+		return nil, fmt.Errorf("error while creating table: %v", err)
+	}
 	return dbPool, nil
+}
+
+func migrateDB(db *sql.DB) error {
+	createBooks := `CREATE TABLE IF NOT EXISTS books (
+		ID SERIAL NOT NULL,
+		Anuthor VARCHAR NOT NULL,
+		Published_Date DATE NOT NULL,
+		Price DOUBLE NOT NULL,
+		In_Stock BOOL NOT NULL,
+		time_added datetime NOT NULL,
+		PRIMARY KEY (id)
+	);`
+	_, err := db.Exec(createBooks)
+	return err
 }
