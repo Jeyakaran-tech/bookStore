@@ -1,30 +1,31 @@
-FROM golang:1.12
 
+FROM golang:1.17-buster as builder
+
+# Create and change to the app directory.
 WORKDIR /app
-COPY . .
 
-# build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /build/server .
+# Retrieve application dependencies.
+# This allows the container build to reuse cached dependencies.
+# Expecting to copy go.mod and if present go.sum.
+COPY go.* ./
+RUN go mod download
 
-# download the cloudsql proxy binary
-RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /build/cloud_sql_proxy
-RUN chmod +x /build/cloud_sql_proxy
+# Copy local code to the container image.
+COPY . ./
 
-# copy the wrapper script and credentials
-COPY run.sh /build/run.sh
-COPY credentials.json /build/credentials.json
+# Build the binary.
+RUN go build -v -o server
 
-#
-# -- build minimal image --
-#
-FROM alpine:latest
+# Use the official Debian slim image for a lean production container.
+# https://hub.docker.com/_/debian
+# https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
+FROM debian:buster-slim
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /root
+# Copy the binary to the production image from the builder stage.
+COPY --from=builder /app/server /app/server
 
-# add certificates
-RUN apk --no-cache add ca-certificates
-
-# copy everything from our build folder
-COPY --from=0 /build .
-
-CMD ["./run.sh"]
+# Run the web service on container startup.
+CMD ["/app/server"]
