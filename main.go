@@ -29,7 +29,12 @@ func main() {
 		return
 	}
 
-	_ = db
+	createErr := migrateDB(db)
+	if createErr != nil {
+		fmt.Errorf("error when connecting to the database", createErr)
+		return
+	}
+
 	http.HandleFunc("/", createGetUserHandler())
 	// Determine port for HTTP service.
 	port := os.Getenv("PORT")
@@ -81,10 +86,7 @@ func connectWithConnector() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
-	createErr := migrateDB(dbPool)
-	if createErr != nil {
-		return nil, fmt.Errorf("error while creating table: %v", err)
-	}
+
 	return dbPool, nil
 }
 
