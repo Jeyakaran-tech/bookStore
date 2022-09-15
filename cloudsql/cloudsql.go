@@ -1,53 +1,69 @@
-package main
+package cloudsql
 
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"cloud.google.com/go/cloudsqlconn"
+	"github.com/Jeyakaran-tech/bookStore/types"
 	"github.com/go-sql-driver/mysql"
 )
 
-// createGetUserHandler returns a user handler function that
-// returns the first user's name from the DB to the http caller
-func createGetUserHandler() http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-
-		rw.Write([]byte("success"))
+func Books(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		listOfBooks(w, r, getDB())
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func main() {
-	db, err := connectWithConnector()
+func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+
+	var books []types.Books
+	listOfBooks, err := db.Query("SELECT * FROM bookstore")
 	if err != nil {
-		fmt.Errorf("error when connecting to the database", err)
+		log.Fatalf("DB.QueryRow: %v", err)
 		return
 	}
+	defer listOfBooks.Close()
 
-	createErr := migrateDB(db)
-	if createErr != nil {
-		fmt.Errorf("error when connecting to the database", createErr)
+	for listOfBooks.Next() {
+		var (
+			ID             int
+			Author         string
+			Published_date string
+			Price          float64
+			InStock        bool
+			Time_added     time.Time
+		)
+		err := listOfBooks.Scan(&ID, &Author, &Published_date, &Price, &InStock, &Time_added)
+		if err != nil {
+			log.Fatalf("Rows.Scan: %v", err)
+			return
+		}
+		books = append(books, types.Books{
+			ID:             ID,
+			Author:         Author,
+			Published_date: Published_date,
+			Price:          Price,
+			InStock:        InStock,
+			Time_added:     Time_added,
+		})
+	}
+	booksData, err := json.Marshal(books)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
-
-	http.HandleFunc("/", createGetUserHandler())
-	// Determine port for HTTP service.
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		log.Printf("defaulting to port %s", port)
-	}
-
-	// Start HTTP server.
-	log.Printf("listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal(err)
-	}
+	fmt.Fprint(w, string(booksData))
 }
 
 func connectWithConnector() (*sql.DB, error) {
@@ -86,20 +102,5 @@ func connectWithConnector() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
-
 	return dbPool, nil
-}
-
-func migrateDB(db *sql.DB) error {
-	createBooks := `CREATE TABLE IF NOT EXISTS books (
-		ID SERIAL NOT NULL,
-		Anuthor VARCHAR NOT NULL,
-		Published_Date DATE NOT NULL,
-		Price DOUBLE NOT NULL,
-		In_Stock BOOL NOT NULL,
-		time_added datetime NOT NULL,
-		PRIMARY KEY (id)
-	);`
-	_, err := db.Exec(createBooks)
-	return err
 }
