@@ -80,7 +80,8 @@ func insertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("Error reading body: %v", err)
-		fmt.Fprint(w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Failed")
 		return
 	}
 
@@ -97,7 +98,7 @@ func insertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		fmt.Fprint(w, http.StatusBadRequest)
 		return
 	}
-	// formattedDate := datetime.Format()
+
 	if _, err := db.Exec(insertVote, books.Author, date, books.Price, books.InStock); err != nil {
 		log.Fatalf("Cant insert inot table, %v", err)
 		fmt.Fprint(w, http.StatusBadRequest)
