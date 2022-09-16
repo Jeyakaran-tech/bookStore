@@ -18,8 +18,8 @@ func main() {
 	log.Printf("Listening on port %s", port)
 	r := chi.NewRouter()
 
-	r.Get("/v1/books/", cloudsql.Books)
-	r.Post("/v1/books", cloudsql.Books)
+	r.Get("/v1/books/", cloudsql.ListOfBooks)
+	r.Post("/v1/books", cloudsql.InsertBook)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal(err)
 	}

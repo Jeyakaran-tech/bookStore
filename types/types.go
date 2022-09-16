@@ -12,3 +12,8 @@ type Books struct {
 	InStock        bool      `json:"inStock" url:"inStock"`
 	Time_added     time.Time `json:"timeAdded" url:"timeAdded"`
 }
+
+type Status struct {
+	Code        string `json:"code" url:"code"`
+	Description string `json:"description" url:"description"`
+}

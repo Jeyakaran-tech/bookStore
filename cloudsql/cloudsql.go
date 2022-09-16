@@ -17,19 +17,20 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-func Books(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		listOfBooks(w, r, getDB())
-	case http.MethodPost:
-		insertBook(w, r, getDB())
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
-}
+// func Books(w http.ResponseWriter, r *http.Request) {
+// 	switch r.Method {
+// 	case http.MethodGet:
+// 		listOfBooks(w, r, getDB())
+// 	case http.MethodPost:
+// 		insertBook(w, r, getDB())
+// 	default:
+// 		w.WriteHeader(http.StatusMethodNotAllowed)
+// 	}
+// }
 
-func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func ListOfBooks(w http.ResponseWriter, r *http.Request) {
 
+	db := getDB()
 	var books []types.Books
 	listOfBooks, err := db.Query("SELECT * FROM bookstore")
 	if err != nil {
@@ -63,50 +64,52 @@ func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			Time_added:     Time_added,
 		})
 	}
-	booksData, err := json.Marshal(books)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 
-	fmt.Fprint(w, string(booksData))
+	json.NewEncoder(w).Encode(books)
 }
 
-func insertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func InsertBook(w http.ResponseWriter, r *http.Request) {
 
+	db := getDB()
 	var books types.Books
+	w.Header().Set("Content-Type", "application/json")
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("Error reading body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "Failed")
+		json.NewEncoder(w).Encode(badRequest())
 		return
 	}
 
 	if err := json.Unmarshal(body, &books); err != nil {
 		log.Fatalf("Cant unmarshal while reading the request body, %v", err)
-		fmt.Fprint(w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(badRequest())
 		return
 	}
 
-	insertVote := "INSERT INTO votes(Author,Published_date,Price,In_Stock, created_at) VALUES(?,?,?,?, NOW())"
+	insertVote := "INSERT INTO bookstore(Author,Published_date,Price,In_Stock, created_at) VALUES(?,?,?,?, NOW())"
 	date, dateErr := time.Parse("2006-01-02", books.Published_date)
 	if dateErr != nil {
 		log.Printf("Error parsing date: %v", dateErr)
-		fmt.Fprint(w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(badRequest())
 		return
 	}
 
 	if _, err := db.Exec(insertVote, books.Author, date, books.Price, books.InStock); err != nil {
-		log.Fatalf("Cant insert inot table, %v", err)
-		fmt.Fprint(w, http.StatusBadRequest)
+		log.Fatalf("Cant insert into table, %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(badRequest())
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(successResponse())
 }
 
 func connectWithConnector() (*sql.DB, error) {
@@ -146,4 +149,18 @@ func connectWithConnector() (*sql.DB, error) {
 		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
 	return dbPool, nil
+}
+
+func badRequest() types.Status {
+	return types.Status{
+		Code:        "8400",
+		Description: "Bad Request",
+	}
+}
+
+func successResponse() types.Status {
+	return types.Status{
+		Code:        "8200",
+		Description: "Success",
+	}
 }

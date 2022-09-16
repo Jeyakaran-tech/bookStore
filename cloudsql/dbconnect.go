@@ -28,7 +28,7 @@ func mustConnect() *sql.DB {
 	}
 
 	if db == nil {
-		log.Fatal("Missing database connection type. Please define one of INSTANCE_HOST, INSTANCE_UNIX_SOCKET, or INSTANCE_CONNECTION_NAME")
+		log.Fatal("Missing database connection type - INSTANCE_CONNECTION_NAME")
 	}
 
 	if err := createTable(db); err != nil {
