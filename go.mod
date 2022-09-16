@@ -5,6 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/cloudsqlconn v0.5.2 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
+	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

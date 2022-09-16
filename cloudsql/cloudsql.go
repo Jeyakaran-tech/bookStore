@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -20,6 +21,8 @@ func Books(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		listOfBooks(w, r, getDB())
+	case http.MethodPost:
+		insertBook(w, r, getDB())
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -31,6 +34,7 @@ func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	listOfBooks, err := db.Query("SELECT * FROM bookstore")
 	if err != nil {
 		log.Fatalf("DB.QueryRow: %v", err)
+		http.Error(w, "can't select the table", http.StatusBadRequest)
 		return
 	}
 	defer listOfBooks.Close()
@@ -47,6 +51,7 @@ func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		err := listOfBooks.Scan(&ID, &Author, &Published_date, &Price, &InStock, &Time_added)
 		if err != nil {
 			log.Fatalf("Rows.Scan: %v", err)
+			http.Error(w, "can't scan the rows from Database", http.StatusBadRequest)
 			return
 		}
 		books = append(books, types.Books{
@@ -63,7 +68,44 @@ func listOfBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		fmt.Println(err)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
 	fmt.Fprint(w, string(booksData))
+}
+
+func insertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+
+	var books types.Books
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading body: %v", err)
+		fmt.Fprint(w, http.StatusBadRequest)
+		return
+	}
+
+	if err := json.Unmarshal(body, &books); err != nil {
+		log.Fatalf("Cant unmarshal while reading the request body, %v", err)
+		fmt.Fprint(w, http.StatusBadRequest)
+		return
+	}
+
+	insertVote := "INSERT INTO votes(Author,Published_date,Price,In_Stock, created_at) VALUES(?,?,?,?, NOW())"
+	date, dateErr := time.Parse("2006-01-02", books.Published_date)
+	if dateErr != nil {
+		log.Printf("Error parsing date: %v", dateErr)
+		fmt.Fprint(w, http.StatusBadRequest)
+		return
+	}
+	// formattedDate := datetime.Format()
+	if _, err := db.Exec(insertVote, books.Author, date, books.Price, books.InStock); err != nil {
+		log.Fatalf("Cant insert inot table, %v", err)
+		fmt.Fprint(w, http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
 }
 
 func connectWithConnector() (*sql.DB, error) {
@@ -76,10 +118,10 @@ func connectWithConnector() (*sql.DB, error) {
 	}
 
 	var (
-		dbUser                 = mustGetenv("DB_USER")                  // e.g. 'my-db-user'
-		dbPwd                  = mustGetenv("DB_PASS")                  // e.g. 'my-db-password'
-		dbName                 = mustGetenv("DB_NAME")                  // e.g. 'my-database'
-		instanceConnectionName = mustGetenv("INSTANCE_CONNECTION_NAME") // e.g. 'project:region:instance'
+		dbUser                 = mustGetenv("DB_USER")
+		dbPwd                  = mustGetenv("DB_PASS")
+		dbName                 = mustGetenv("DB_NAME")
+		instanceConnectionName = mustGetenv("INSTANCE_CONNECTION_NAME")
 		usePrivate             = os.Getenv("PRIVATE_IP")
 	)
 
