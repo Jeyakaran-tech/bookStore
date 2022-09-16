@@ -1,32 +1,16 @@
 package cloudsql
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
-	"os"
+	"path"
 	"time"
 
-	"cloud.google.com/go/cloudsqlconn"
 	"github.com/Jeyakaran-tech/bookStore/types"
-	"github.com/go-sql-driver/mysql"
 )
-
-// func Books(w http.ResponseWriter, r *http.Request) {
-// 	switch r.Method {
-// 	case http.MethodGet:
-// 		listOfBooks(w, r, getDB())
-// 	case http.MethodPost:
-// 		insertBook(w, r, getDB())
-// 	default:
-// 		w.WriteHeader(http.StatusMethodNotAllowed)
-// 	}
-// }
 
 func ListOfBooks(w http.ResponseWriter, r *http.Request) {
 
@@ -112,43 +96,49 @@ func InsertBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(successResponse())
 }
 
-func connectWithConnector() (*sql.DB, error) {
-	mustGetenv := func(k string) string {
-		v := os.Getenv(k)
-		if v == "" {
-			log.Fatalf("Warning: %s environment variable not set.", k)
-		}
-		return v
+func GetBook(w http.ResponseWriter, r *http.Request) {
+	db := getDB()
+	bookID := path.Base(r.URL.Path)
+
+	var books types.Books
+	w.Header().Set("content-type", "application/json")
+
+	book, err := db.Query(fmt.Sprintf("SELECT * FROM bookstore where ID=%v", bookID))
+	if err != nil {
+		log.Fatalf("DB.QueryRow: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(internalServerError())
+		return
 	}
+	defer book.Close()
 
 	var (
-		dbUser                 = mustGetenv("DB_USER")
-		dbPwd                  = mustGetenv("DB_PASS")
-		dbName                 = mustGetenv("DB_NAME")
-		instanceConnectionName = mustGetenv("INSTANCE_CONNECTION_NAME")
-		usePrivate             = os.Getenv("PRIVATE_IP")
+		ID             int
+		Author         string
+		Published_date string
+		Price          float64
+		InStock        bool
+		Time_added     time.Time
 	)
-
-	d, err := cloudsqlconn.NewDialer(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("cloudsqlconn.NewDialer: %v", err)
+	scanErr := book.Scan(&ID, &Author, &Published_date, &Price, &InStock, &Time_added)
+	if scanErr != nil {
+		log.Fatalf("Rows.Scan: %v", scanErr)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(badRequest())
+		return
 	}
-	mysql.RegisterDialContext("cloudsqlconn",
-		func(ctx context.Context, addr string) (net.Conn, error) {
-			if usePrivate != "" {
-				return d.Dial(ctx, instanceConnectionName, cloudsqlconn.WithPrivateIP())
-			}
-			return d.Dial(ctx, instanceConnectionName)
-		})
-
-	dbURI := fmt.Sprintf("%s:%s@cloudsqlconn(localhost:3306)/%s?parseTime=true",
-		dbUser, dbPwd, dbName)
-
-	dbPool, err := sql.Open("mysql", dbURI)
-	if err != nil {
-		return nil, fmt.Errorf("sql.Open: %v", err)
+	books = types.Books{
+		ID:             ID,
+		Author:         Author,
+		Published_date: Published_date,
+		Price:          Price,
+		InStock:        InStock,
+		Time_added:     Time_added,
 	}
-	return dbPool, nil
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(books)
+
 }
 
 func badRequest() types.Status {
@@ -162,5 +152,12 @@ func successResponse() types.Status {
 	return types.Status{
 		Code:        "8200",
 		Description: "Success",
+	}
+}
+
+func internalServerError() types.Status {
+	return types.Status{
+		Code:        "8500",
+		Description: "Internal Server Error",
 	}
 }

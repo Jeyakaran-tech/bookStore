@@ -20,6 +20,7 @@ func main() {
 
 	r.Get("/v1/books/", cloudsql.ListOfBooks)
 	r.Post("/v1/books", cloudsql.InsertBook)
+	r.Post("/v1/books/{book-id}", cloudsql.GetBook)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal(err)
 	}
