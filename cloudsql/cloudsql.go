@@ -32,6 +32,8 @@ func ListOfBooks(w http.ResponseWriter, r *http.Request) {
 
 	db := getDB()
 	var books []types.Books
+	w.Header().Set("content-type", "application/json")
+
 	listOfBooks, err := db.Query("SELECT * FROM bookstore")
 	if err != nil {
 		log.Fatalf("DB.QueryRow: %v", err)
@@ -66,8 +68,6 @@ func ListOfBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-
 	json.NewEncoder(w).Encode(books)
 }
 
@@ -75,7 +75,7 @@ func InsertBook(w http.ResponseWriter, r *http.Request) {
 
 	db := getDB()
 	var books types.Books
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("content-type", "application/json")
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -92,7 +92,7 @@ func InsertBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	insertVote := "INSERT INTO bookstore(Author,Published_date,Price,In_Stock, created_at) VALUES(?,?,?,?, NOW())"
+	insertVote := "INSERT INTO bookstore(Author,Published_date,Price,In_Stock, time_added) VALUES(?,?,?,?, NOW())"
 	date, dateErr := time.Parse("2006-01-02", books.Published_date)
 	if dateErr != nil {
 		log.Printf("Error parsing date: %v", dateErr)
