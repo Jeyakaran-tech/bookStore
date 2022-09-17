@@ -9,32 +9,37 @@ RUN go mod download
 COPY . ./
 
 # Build the binary.
-RUN go build -v -o /build/server ./cmd/app
+RUN go build -v -o server ./cmd/app
 
 # download the cloudsql proxy binary
-RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /build/cloud_sql_proxy
-RUN chmod +x /build/cloud_sql_proxy
+RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
+RUN chmod +x cloud_sql_proxy
 
 # copy the wrapper script and credentials
-COPY run.sh /build/run.sh
-COPY credentials.json /build/credentials.json
+# COPY run.sh /build/run.sh
+# COPY credentials.json /build/credentials.json
 
 #
 # -- build minimal image --
 #
-FROM alpine:latest
+FROM debian:buster-slim
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /root
+# WORKDIR /root
 
 # add certificates
-RUN apk --no-cache add ca-certificates
+# RUN apk --no-cache add ca-certificates
 
 # copy everything from our build folder
-COPY --from=0 /build .
-RUN chmod +x ./run.sh
+# COPY --from=0 /build .
+
 
 RUN ./cloud_sql_proxy -instances=$INSTANCE_CONNECTION_NAME=tcp:5432  &
 
-RUN sleep 10
+COPY --from=builder /app/server /app/server
 
-CMD ["/server"]
+# Run the web service on container startup.
+WORKDIR /app
+CMD ["/app/server"]
