@@ -2,7 +2,6 @@ FROM golang:1.12
 
 WORKDIR /app
 COPY . .
-RUN go mod download
 
 # build the Go binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /build/server ./cmd/app
