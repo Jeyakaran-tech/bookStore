@@ -32,7 +32,7 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /app/build/server /app/build/server
+COPY --from=builder /build/server /build/server
 
 # copy everything from our build folder
 COPY --from=0 /build .
