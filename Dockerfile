@@ -14,7 +14,7 @@ RUN go mod download
 COPY . ./
 
 # Build the binary.
-RUN go build -v -o server ./cmd/app
+RUN go build -v -o /build/server ./cmd/app
 
 # download the cloudsql proxy binary
 RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /build/cloud_sql_proxy
@@ -33,10 +33,6 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /app/server
-
-# Run the web service on container startup.
-WORKDIR /app
-CMD ["/app/server"]
 
 # copy everything from our build folder
 COPY --from=0 /build .

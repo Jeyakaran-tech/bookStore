@@ -33,7 +33,7 @@ func (fn RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// This is where our error handling logic starts.
-	log.Printf("An error accured: %v", err) // Log the error.
+	log.Printf("An error occured: %v", err) // Log the error.
 
 	clientError, ok := err.(cloudsql.ClientError) // Check if it is a ClientError.
 	if !ok {
