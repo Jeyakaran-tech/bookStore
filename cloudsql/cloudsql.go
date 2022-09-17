@@ -103,7 +103,7 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	var books types.Books
 	w.Header().Set("content-type", "application/json")
 
-	book, err := db.Query(fmt.Sprintf("SELECT * FROM bookstore where ID=%v", bookID))
+	book, err := db.Query(fmt.Sprintf("SELECT * FROM bookstore where ID=%s", bookID))
 	if err != nil {
 		log.Fatalf("DB.QueryRow: %v", err)
 		w.WriteHeader(http.StatusBadRequest)

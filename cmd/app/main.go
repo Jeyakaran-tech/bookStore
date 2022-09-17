@@ -19,8 +19,8 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Get("/v1/books/", cloudsql.ListOfBooks)
+	r.Get("/v1/books/{book-id}", cloudsql.GetBook)
 	r.Post("/v1/books", cloudsql.InsertBook)
-	r.Post("/v1/books/{book-id}", cloudsql.GetBook)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal(err)
 	}
