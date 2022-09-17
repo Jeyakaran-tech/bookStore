@@ -1,10 +1,15 @@
 FROM golang:1.12
 
 WORKDIR /app
-COPY . .
+COPY go.* ./
+RUN go mod download
 
-# build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /build/server ./cmd/app
+
+# Copy local code to the container image.
+COPY . ./
+
+# Build the binary.
+RUN go build -v -o /build/server ./cmd/app
 
 # download the cloudsql proxy binary
 RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /build/cloud_sql_proxy
