@@ -5,5 +5,5 @@
 
 # wait for the proxy to spin up
 sleep 10
-
+ls
 ./server

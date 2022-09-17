@@ -32,4 +32,9 @@ RUN apk --no-cache add ca-certificates
 # copy everything from our build folder
 COPY --from=0 /build .
 RUN chmod +x ./run.sh
-CMD ["./run.sh"]
+
+RUN ./cloud_sql_proxy -instances=$INSTANCE_CONNECTION_NAME=tcp:5432  &
+
+RUN sleep 10
+
+CMD ["/server"]
