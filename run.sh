@@ -9,4 +9,4 @@ sleep 10
 # Start the server
 #WORKDIR /app
 #CMD ["/app/server"]
-./build/server
+./app/server
