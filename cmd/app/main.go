@@ -19,7 +19,7 @@ func main() {
 	mux.Handle("/v1/books/", RootHandler(cloudsql.ListOfBooks))
 	mux.Handle("/v1/books/{book-id}", RootHandler(cloudsql.GetBook))
 	mux.Handle("/v1/books", RootHandler(cloudsql.InsertBook))
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
