@@ -17,7 +17,7 @@ COPY . ./
 RUN go build -v -o server ./cmd/app
 
 # download the cloudsql proxy binary
-RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -o cloud_sql_proxy
+RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
 RUN chmod +x cloud_sql_proxy
 
 # copy the wrapper script and credentials
@@ -34,5 +34,4 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /app/server
 
-WORKDIR /app
 CMD ["./run.sh"]
