@@ -7,6 +7,6 @@
 sleep 10
 
 # Start the server
-WORKDIR /app
-CMD ["/app/server"]
+#WORKDIR /app
+#CMD ["/app/server"]
 ./server
