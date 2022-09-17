@@ -21,7 +21,7 @@ RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql
 RUN chmod +x cloud_sql_proxy
 
 # copy the wrapper script and credentials
-COPY run.sh run.sh
+COPY run.sh /usr/src/app/run.sh
 
 # Use the official Debian slim image for a lean production container.
 # https://hub.docker.com/_/debian
@@ -34,4 +34,4 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/server /app/server
 
-CMD ["./run.sh"]
+CMD ["/usr/src/app/run.sh"]
