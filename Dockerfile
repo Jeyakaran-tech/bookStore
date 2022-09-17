@@ -31,5 +31,5 @@ RUN apk --no-cache add ca-certificates
 
 # copy everything from our build folder
 COPY --from=0 /build .
-
+RUN chmod +x ./run.sh
 CMD ["./run.sh"]
