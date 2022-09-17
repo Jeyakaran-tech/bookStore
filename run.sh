@@ -6,8 +6,4 @@
 # wait for the proxy to spin up
 sleep 10
 
-# Start the server
-ls
-cd /app/build
-#CMD ["/app/server"]
 ./server
