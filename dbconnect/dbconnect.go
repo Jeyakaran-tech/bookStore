@@ -93,6 +93,7 @@ func connectWithConnector() (*sql.DB, error) {
 func createTable(db *sql.DB) error {
 	createBook := `CREATE TABLE IF NOT EXISTS bookstore (
 		ID SERIAL NOT NULL, 
+		Name VARCHAR(50) NOT NULL,
 		Author VARCHAR(50) NOT NULL, 
 		Published_date DATE NOT NULL, 
 		Price DOUBLE NOT NULL, 
