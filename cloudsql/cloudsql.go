@@ -38,7 +38,7 @@ func GetBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 			InStock        bool
 			Time_added     time.Time
 		)
-		err := listOfBooks.Scan(&ID, &Author, &Name, &Published_date, &Price, &InStock, &Time_added)
+		err := listOfBooks.Scan(&ID, &Name, &Author, &Published_date, &Price, &InStock, &Time_added)
 		if err != nil {
 			return NewHTTPError(err, 400, "Can't pull the data from table")
 		}
@@ -60,6 +60,9 @@ func GetBooks(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 
 func InsertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 
+	if r.Method != "POST" {
+		return NewHTTPError(fmt.Errorf("invalid method passed"), 400, "Bad Request")
+	}
 	var books types.Books
 	w.Header().Set("content-type", "application/json")
 
@@ -78,7 +81,7 @@ func InsertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 		return NewHTTPError(dateErr, 400, "Error parsing date")
 	}
 
-	if _, insertErr := db.Exec(insertBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
+	if _, insertErr := db.Exec(insertBook, books.Author, books.Name, date, books.Price, books.InStock); insertErr != nil {
 		return NewHTTPError(insertErr, 400, "Insertion error")
 	}
 
@@ -108,7 +111,11 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 	switch r.Method {
 	case "GET":
 
-		scanErr := db.QueryRow(fmt.Sprintf("SELECT * FROM bookstore where ID=%s", bookID)).Scan(&ID, &Author, &Name, &Published_date, &Price, &InStock, &Time_added)
+		if r.Method != "GET" {
+			return NewHTTPError(fmt.Errorf("invalid method passed"), 400, "Bad Request")
+		}
+
+		scanErr := db.QueryRow(fmt.Sprintf("SELECT * FROM bookstore where ID=%s", bookID)).Scan(&ID, &Name, &Author, &Published_date, &Price, &InStock, &Time_added)
 		if scanErr != nil {
 			return NewHTTPError(nil, 400, "Error when selecting rows")
 		}
@@ -126,6 +133,10 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 		return nil
 
 	case "PUT":
+
+		if r.Method != "PUT" {
+			return NewHTTPError(fmt.Errorf("invalid method passed"), 400, "Bad Request")
+		}
 		var books types.Books
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -143,7 +154,7 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 		}
 
 		if _, err := db.Exec(updateBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
-			return NewHTTPError(dateErr, 400, "Insertion error")
+			return NewHTTPError(dateErr, 400, "Updation error")
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -160,6 +171,10 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 }
 
 func GetBookWithWildCard(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
+
+	if r.Method != "GET" {
+		return NewHTTPError(fmt.Errorf("invalid method passed"), 400, "Bad Request")
+	}
 
 	var books []types.Books
 	w.Header().Set("content-type", "application/json")
@@ -191,7 +206,7 @@ func GetBookWithWildCard(w http.ResponseWriter, r *http.Request, db *sql.DB) err
 			InStock        bool
 			Time_added     time.Time
 		)
-		err := listOfBooks.Scan(&ID, &Author, &Name, &Published_date, &Price, &InStock, &Time_added)
+		err := listOfBooks.Scan(&ID, &Name, &Author, &Published_date, &Price, &InStock, &Time_added)
 		if err != nil {
 			return NewHTTPError(err, 400, "Can't pull the data from table")
 		}
