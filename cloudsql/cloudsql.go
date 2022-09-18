@@ -78,8 +78,8 @@ func InsertBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 		return NewHTTPError(dateErr, 400, "Error parsing date")
 	}
 
-	if _, err := db.Exec(insertBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
-		return NewHTTPError(dateErr, 400, "Insertion error")
+	if _, insertErr := db.Exec(insertBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
+		return NewHTTPError(insertErr, 400, "Insertion error")
 	}
 
 	w.WriteHeader(http.StatusOK)
