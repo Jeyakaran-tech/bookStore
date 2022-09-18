@@ -14,7 +14,7 @@ RUN go build -v -o server ./cmd/app
 # download the cloudsql proxy binary
 RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
 RUN chmod +x cloud_sql_proxy
-
+COPY build/credentials.json credentials.json
 #
 # -- build minimal image --
 #
@@ -24,7 +24,7 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
     rm -rf /var/lib/apt/lists/*
 
 
-RUN ./cloud_sql_proxy -instances=$INSTANCE_CONNECTION_NAME=tcp:5432  &
+RUN ./cloud_sql_proxy -instances=$INSTANCE_CONNECTION_NAME=tcp:5432 -credential_file=credentials.json &
 
 COPY --from=builder /app/server /app/server
 
