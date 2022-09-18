@@ -126,7 +126,7 @@ var _ = Describe("Cloudsql", func() {
 
 			rr := httptest.NewRecorder()
 			mux := mux.NewRouter()
-			mux.Handle("/v1/books/{book-id}", RootHandler(users.GetOrUpdateBook))
+			mux.Handle("/v1/books/101", RootHandler(users.GetOrUpdateBook))
 			mux.ServeHTTP(rr, req)
 
 			Expect(rr.Code).To(BeEquivalentTo(200))
