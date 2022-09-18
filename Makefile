@@ -1,9 +1,7 @@
-export MYSQL_USER=user 
-export MYSQL_PASSWORD=testbooks
-export MYSQL_INSTANCE=bookstore-362511:australia-southeast2:bookstore
-export MYSQL_DATABASE=books
-export MYSQL_PORT=5432
-export MYSQL_HOST=127.0.0.1
+export DB_USER=user 
+export DB_PASS=testbooks
+export INSTANCE_CONNECTION_NAME=bookstore-362511:australia-southeast2:bookstore
+export DB_NAME=books
 
 compile:
 	go build -v -o build/bookstore ./cmd/app

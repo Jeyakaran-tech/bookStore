@@ -43,9 +43,9 @@ func (u *User) GetOrUpdateBook(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *User) InsertBook(w http.ResponseWriter, r *http.Request) error {
-	return cloudsql.GetOrUpdateBook(w, r, u.Database)
+	return cloudsql.InsertBook(w, r, u.Database)
 }
 
 func (u *User) GetBookWithWildCard(w http.ResponseWriter, r *http.Request) error {
-	return cloudsql.GetOrUpdateBook(w, r, u.Database)
+	return cloudsql.GetBookWithWildCard(w, r, u.Database)
 }
