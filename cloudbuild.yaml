@@ -9,7 +9,7 @@
       go get github.com/onsi/gomega/...
       wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
       chmod +x cloud_sql_proxy
-      ./cloud_sql_proxy -instances=bookstore-362511:australia-southeast2:bookstore=tcp:5432 &
+      ./cloud_sql_proxy -instances=bookstore-362511:australia-southeast2:bookstore=tcp:5432 -credential_file=./creds.json &
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./...
  - name: 'gcr.io/cloud-builders/docker'
    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA', '.']
