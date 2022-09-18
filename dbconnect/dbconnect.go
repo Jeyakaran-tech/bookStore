@@ -1,4 +1,4 @@
-package cloudsql
+package dbconnect
 
 import (
 	"context"
@@ -7,12 +7,19 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 
 	"cloud.google.com/go/cloudsqlconn"
 	"github.com/go-sql-driver/mysql"
 )
 
-func getDB() *sql.DB {
+var (
+	db   *sql.DB
+	once sync.Once
+)
+
+func GetDB() *sql.DB {
+
 	once.Do(func() {
 		db = mustConnect()
 	})

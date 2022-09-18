@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/Jeyakaran-tech/bookStore/cloudsql"
+	"github.com/Jeyakaran-tech/bookStore/dbconnect"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -15,43 +18,34 @@ func main() {
 	}
 	log.Printf("Listening on port %s", port)
 
-	mux := http.NewServeMux()
-	mux.Handle("/v1/books/", RootHandler(cloudsql.ListOfBooks))
-	mux.Handle("/v1/books/{book-id}", RootHandler(cloudsql.GetBook))
-	mux.Handle("/v1/books", RootHandler(cloudsql.InsertBook))
+	users := &User{Database: dbconnect.GetDB()}
+
+	mux := mux.NewRouter()
+	mux.Handle("/v1/books/", cloudsql.RootHandler(users.ListOfBooks)).Methods("GET")
+	mux.Handle("/v1/books/{book-id}", cloudsql.RootHandler(users.GetOrUpdateBook))
+	mux.Handle("/v1/books", cloudsql.RootHandler(users.InsertBook)).Methods("POST")
+	mux.Handle("/v1/books", cloudsql.RootHandler(users.GetBookWithWildCard)).Methods("GET")
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
 
-type RootHandler func(http.ResponseWriter, *http.Request) error
+type User struct {
+	Database *sql.DB
+}
 
-// rootHandler implements http.Handler interface.
-func (fn RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := fn(w, r) // Call handler function
-	if err == nil {
-		return
-	}
-	// This is where our error handling logic starts.
-	log.Printf("An error occured: %v", err) // Log the error.
+func (u *User) ListOfBooks(w http.ResponseWriter, r *http.Request) error {
+	return cloudsql.GetBooks(w, r, u.Database)
+}
 
-	clientError, ok := err.(cloudsql.ClientError) // Check if it is a ClientError.
-	if !ok {
-		// If the error is not ClientError, assume that it is ServerError.
-		w.WriteHeader(500) // return 500 Internal Server Error.
-		return
-	}
+func (u *User) GetOrUpdateBook(w http.ResponseWriter, r *http.Request) error {
+	return cloudsql.GetOrUpdateBook(w, r, u.Database)
+}
 
-	body, err := clientError.ResponseBody() // Try to get response body of ClientError.
-	if err != nil {
-		log.Printf("An error accured: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-	status, headers := clientError.ResponseHeaders() // Get http status code and headers.
-	for k, v := range headers {
-		w.Header().Set(k, v)
-	}
-	w.WriteHeader(status)
-	w.Write(body)
+func (u *User) InsertBook(w http.ResponseWriter, r *http.Request) error {
+	return cloudsql.GetOrUpdateBook(w, r, u.Database)
+}
+
+func (u *User) GetBookWithWildCard(w http.ResponseWriter, r *http.Request) error {
+	return cloudsql.GetOrUpdateBook(w, r, u.Database)
 }
