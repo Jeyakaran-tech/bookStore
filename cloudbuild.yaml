@@ -9,37 +9,9 @@
       go get github.com/onsi/gomega/...
       wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
       chmod +x cloud_sql_proxy
-      ./cloud_sql_proxy -instances=bookstore-362511:australia-southeast2:bookstore=tcp:3306 &
+      ./cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:3306 &
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./cloudsql
- # Build the docker container for cloud sql proxy
- - id: "docker-layer"
-   name: "gcr.io/cloud-builders/docker"
-   entrypoint: /bin/bash
-   args:
-    - '-c'
-    - |
-      echo "FROM $_IMAGE_NAME
-      COPY --from=gcr.io/cloudsql-docker/gce-proxy /cloud_sql_proxy /cloudsql/cloud_sql_proxy" > Dockerfile-proxy;
-
-      docker build -f Dockerfile-proxy -t ${_IMAGE_NAME}-proxy .
-# For TCP connections to be used in integration test
- - id: "migrate-tcp"
-   name: "${_IMAGE_NAME}-proxy"
-   dir: sql-proxy
-   env:
-    - "DATABASE_NAME=${_DATABASE_NAME}"
-    - "DATABASE_USER=${_DATABASE_USER}"
-    - "DATABASE_HOST=127.0.0.1"
-    - "DATABASE_PORT=${_DATABASE_PORT}"
-    - "DATABASE_TYPE=${_DATABASE_TYPE}"
-   secretEnv:
-    - DATABASE_PASS
-   entrypoint: /bin/bash
-   args:
-     - '-c'
-     - |
-       /cloudsql/cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:${_DATABASE_PORT} & sleep 2;
-
+# Run the integration test
  - name: golang:1.18
    entrypoint: /bin/bash
    args: 
