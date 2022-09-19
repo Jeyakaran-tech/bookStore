@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"time"
 
 	"github.com/Jeyakaran-tech/bookStore/cloudsql"
@@ -154,19 +153,12 @@ func (u *User) GetBookWithWildCard(w http.ResponseWriter, r *http.Request) error
 }
 
 func connectTCPSocket() (*sql.DB, error) {
-	mustGetenv := func(k string) string {
-		v := os.Getenv(k)
-		if v == "" {
-			log.Fatalf("Warning: %s environment variable not set.", k)
-		}
-		return v
-	}
 
 	var (
-		dbUser    = mustGetenv("DB_USER") // e.g. 'my-db-user'
-		dbPwd     = mustGetenv("DB_PASS") // e.g. 'my-db-password'
-		dbName    = mustGetenv("DB_NAME") // e.g. 'my-database'
-		dbPort    = "3306"                // e.g. '3306'
+		dbUser    = "user"
+		dbPwd     = "testbooks"
+		dbName    = "books"
+		dbPort    = "3306"
 		dbTCPHost = "127.0.0.1"
 	)
 
