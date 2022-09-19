@@ -7,17 +7,7 @@
     - |
       go install github.com/onsi/ginkgo/v2/ginkgo
       go get github.com/onsi/gomega/...
-      wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-      chmod +x cloud_sql_proxy
-      ./cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:3306 &
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./cloudsql
-# Run the integration test
- - name: golang:1.18
-   entrypoint: /bin/bash
-   args: 
-    - -c
-    - |
-      go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./integrationtests -coverprofile=unit_test.raw.out ./integrationtests
  # Build the container image
  - name: 'gcr.io/cloud-builders/docker'
    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA', '.']
@@ -39,5 +29,3 @@
  - 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA'
  options:
    logging: CLOUD_LOGGING_ONLY
- substitutions:
-  _INSTANCE_CONNECTION_NAME: ${PROJECT_ID}:australia-southeast2:bookstore

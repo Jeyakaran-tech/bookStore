@@ -9,6 +9,7 @@ import (
 	"github.com/Jeyakaran-tech/bookStore/cloudsql"
 	"github.com/Jeyakaran-tech/bookStore/dbconnect"
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 	mux.Handle("/v1/books/{book-id}", cloudsql.RootHandler(users.GetOrUpdateBook))
 	mux.Handle("/v1/books", cloudsql.RootHandler(users.InsertBook)).Methods("POST")
 	mux.Handle("/v1/books", cloudsql.RootHandler(users.GetBookWithWildCard)).Methods("GET")
+	mux.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}

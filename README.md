@@ -59,8 +59,13 @@ Cloud_sql_proxy is an utility for ensuring connections to your Google Cloud SQL.
 ![image](./images/unittestCoverage.png)
 
 ## Functional/Integration tests
-1. The given scenarios were tested by connecting the Database directly. This can be considered as Integration testing/Functional testing.
+1. The given scenarios were tested by connecting to Database via cloud sql proxy. Local sql proxy spun up and run the below command,
+
+```sh
+go test -v -timeout 1000s -covermode=atomic -coverpkg=./integrationtests -coverprofile=unit_test.raw.out ./integrationtests
+```
 2. The testing scripts can be found in `./integrationtests`
+3. The scenarios mentioned in the question has been covered here.
 
 # Deploying to Cloud 
 
@@ -71,7 +76,7 @@ Docker has been used for image creation. Refer to `Dockerfile` in the repository
 
 1. Cloud Build is used in this project for CI and CD. When the Cloud Run service is created on Google Cloud Platform, the service is configured to trigger the build when the commit is pushed into develop branch. 
 2. cloudbuild.yaml is used to create the docker image, push the image into Google container registry, and deploy into Cloud Run automatically.
-3. Both Unit test and Integration tests has been added to the CI, which will ensure the application is 100% tested, and ready to fire the deployment. 
+3. Unit test has been added to the CI, which will ensure the application is 100% tested, and ready to fire the deployment. 
 
 
 # Important Information
