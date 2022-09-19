@@ -11,18 +11,41 @@
       chmod +x cloud_sql_proxy
       ./cloud_sql_proxy -instances=bookstore-362511:australia-southeast2:bookstore=tcp:3306 &
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./cloudsql
- # Run the Integration/functional test
+ # Build the docker container for cloud sql proxy
+ - id: "docker-layer"
+   name: "gcr.io/cloud-builders/docker"
+   entrypoint: /bin/bash
+   args:
+    - '-c'
+    - |
+      echo "FROM $_IMAGE_NAME
+      COPY --from=gcr.io/cloudsql-docker/gce-proxy /cloud_sql_proxy /cloudsql/cloud_sql_proxy" > Dockerfile-proxy;
+
+      docker build -f Dockerfile-proxy -t ${_IMAGE_NAME}-proxy .
+# For TCP connections to be used in integration test
+ - id: "migrate-tcp"
+   name: "${_IMAGE_NAME}-proxy"
+   dir: sql-proxy
+   env:
+    - "DATABASE_NAME=${_DATABASE_NAME}"
+    - "DATABASE_USER=${_DATABASE_USER}"
+    - "DATABASE_HOST=127.0.0.1"
+    - "DATABASE_PORT=${_DATABASE_PORT}"
+    - "DATABASE_TYPE=${_DATABASE_TYPE}"
+   secretEnv:
+    - DATABASE_PASS
+   entrypoint: /bin/bash
+   args:
+     - '-c'
+     - |
+       /cloudsql/cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:${_DATABASE_PORT} & sleep 2;
+
  - name: golang:1.18
    entrypoint: /bin/bash
    args: 
     - -c
     - |
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./integrationtests -coverprofile=unit_test.raw.out ./integrationtests
-   env:
-    - 'INSTANCE_CONNECTION_NAME=bookstore-362511:australia-southeast2:bookstore'
-    - 'DB_USER=user'
-    - 'DB_PASS=testbooks'
-    - 'DB_NAME=books'
  # Build the container image
  - name: 'gcr.io/cloud-builders/docker'
    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA', '.']
@@ -44,3 +67,12 @@
  - 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA'
  options:
    logging: CLOUD_LOGGING_ONLY
+   dynamic_substitutions: true
+ substitutions:
+  _DATABASE_USER: user
+  _DATABASE_NAME: books
+  _INSTANCE_CONNECTION_NAME: ${PROJECT_ID}:australia-southeast2:bookstore
+  _DATABASE_PORT: '3306'
+  _DATABASE_TYPE: mysql
+  _DATABASE_PASSWORD_KEY: testbooks
+  _IMAGE_NAME: gcr.io/${PROJECT_ID}/sample-sql-proxy
