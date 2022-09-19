@@ -117,7 +117,7 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 
 		scanErr := db.QueryRow(fmt.Sprintf("SELECT * FROM bookstore where ID=%s", bookID)).Scan(&ID, &Name, &Author, &Published_date, &Price, &InStock, &Time_added)
 		if scanErr != nil {
-			return NewHTTPError(nil, 400, "Error when selecting rows")
+			return NewHTTPError(scanErr, 400, "Error when selecting rows")
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -153,8 +153,8 @@ func GetOrUpdateBook(w http.ResponseWriter, r *http.Request, db *sql.DB) error {
 			return NewHTTPError(dateErr, 400, "Error parsing date")
 		}
 
-		if _, err := db.Exec(updateBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
-			return NewHTTPError(dateErr, 400, "Updation error")
+		if _, updateErr := db.Exec(updateBook, books.Author, books.Name, date, books.Price, books.InStock); err != nil {
+			return NewHTTPError(updateErr, 400, "Updation error")
 		}
 
 		w.WriteHeader(http.StatusOK)

@@ -1,5 +1,13 @@
  steps:
  # Build the container image
+ - name: unit-test
+   entrypoint: /bin/bash
+   args: 
+    - -c
+    - |
+      go install github.com/onsi/ginkgo/v2/ginkgo
+      go get github.com/onsi/gomega/...
+      go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./...
  - name: 'gcr.io/cloud-builders/docker'
    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA', '.']
  # Push the container image to Container Registry

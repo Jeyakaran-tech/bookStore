@@ -5,6 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/cloudsqlconn v0.5.2 // indirect
 	cloud.google.com/go/compute v1.9.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/GoogleCloudPlatform/cloudsql-proxy v1.32.0 // indirect
 	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -34,6 +35,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220902135211-223410557253 // indirect
 	google.golang.org/grpc v1.49.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/gorm v1.23.8 // indirect
 )
