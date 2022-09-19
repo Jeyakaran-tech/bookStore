@@ -8,11 +8,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"time"
 
 	"github.com/Jeyakaran-tech/bookStore/cloudsql"
-	"github.com/Jeyakaran-tech/bookStore/dbconnect"
 	"github.com/Jeyakaran-tech/bookStore/types"
+	_ "github.com/go-sql-driver/mysql"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -30,7 +31,10 @@ var writeBook = &types.Books{
 
 var _ = Describe("IntegrationTests", func() {
 
-	db := dbconnect.GetDB()
+	db, connErr := connectTCPSocket()
+	if connErr != nil {
+		log.Fatal(connErr)
+	}
 
 	Context("Insert the book", func() {
 
@@ -147,4 +151,38 @@ func (u *User) InsertBook(w http.ResponseWriter, r *http.Request) error {
 
 func (u *User) GetBookWithWildCard(w http.ResponseWriter, r *http.Request) error {
 	return cloudsql.GetBookWithWildCard(w, r, u.Database)
+}
+
+func connectTCPSocket() (*sql.DB, error) {
+	mustGetenv := func(k string) string {
+		v := os.Getenv(k)
+		if v == "" {
+			log.Fatalf("Warning: %s environment variable not set.", k)
+		}
+		return v
+	}
+	// Note: Saving credentials in environment variables is convenient, but not
+	// secure - consider a more secure solution such as
+	// Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
+	// keep secrets safe.
+	var (
+		dbUser    = mustGetenv("DB_USER") // e.g. 'my-db-user'
+		dbPwd     = mustGetenv("DB_PASS") // e.g. 'my-db-password'
+		dbName    = mustGetenv("DB_NAME") // e.g. 'my-database'
+		dbPort    = "3306"                // e.g. '3306'
+		dbTCPHost = "127.0.0.1"
+	)
+
+	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		dbUser, dbPwd, dbTCPHost, dbPort, dbName)
+
+	// dbPool is the pool of database connections.
+	dbPool, err := sql.Open("mysql", dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("sql.Open: %v", err)
+	}
+
+	// ...
+
+	return dbPool, nil
 }
