@@ -15,6 +15,7 @@ type Books struct {
 }
 
 type Status struct {
+	ID          int64  `json:"id,omitempty" url:"id,omitempty"`
 	Code        string `json:"code" url:"code"`
 	Description string `json:"description" url:"description"`
 }

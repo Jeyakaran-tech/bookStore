@@ -1,5 +1,5 @@
  steps:
- # Build the container image
+ # Run the unit test
  - name: golang:1.18
    entrypoint: /bin/bash
    args: 
@@ -8,6 +8,14 @@
       go install github.com/onsi/ginkgo/v2/ginkgo
       go get github.com/onsi/gomega/...
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./...
+ # Run the Integration/functional test
+ - name: golang:1.18
+   entrypoint: /bin/bash
+   args: 
+    - -c
+    - |
+      go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./integrationtests -coverprofile=unit_test.raw.out ./...
+ # Build the container image
  - name: 'gcr.io/cloud-builders/docker'
    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bookstore:$COMMIT_SHA', '.']
  # Push the container image to Container Registry
