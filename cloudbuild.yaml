@@ -41,6 +41,3 @@
    logging: CLOUD_LOGGING_ONLY
  substitutions:
   _INSTANCE_CONNECTION_NAME: ${PROJECT_ID}:australia-southeast2:bookstore
-  DB_USER: user
-  DB_PASS: testbooks
-  DB_NAME: books
