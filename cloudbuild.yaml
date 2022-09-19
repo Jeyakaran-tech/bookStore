@@ -9,7 +9,7 @@
       go get github.com/onsi/gomega/...
       wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
       chmod +x cloud_sql_proxy
-      ./cloud_sql_proxy -instances=$INSTANCE_CONNECTION_NAME=tcp:3306 &
+      ./cloud_sql_proxy -instances=INSTANCE_CONNECTION_NAME=tcp:3306 &
       go test -v -race -timeout 1000s -covermode=atomic -coverpkg=./cloudsql -coverprofile=unit_test.raw.out ./...
    env:
       - 'INSTANCE_CONNECTION_NAME=bookstore-362511:australia-southeast2:bookstore'
