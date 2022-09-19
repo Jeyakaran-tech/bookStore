@@ -110,23 +110,16 @@ var _ = Describe("Cloudsql", func() {
 	Context("Get a book by ID", func() {
 
 		It("should return success", func() {
-			jsonBody := []byte(`{
-				"author": "love life",
-				"publishedDate": "1998-08-12",
-				"price": 500,
-				"inStock": true
-			}`)
-			bodyReader := bytes.NewReader(jsonBody)
 
 			db := getTestDB()
 			defer db.Close()
 
 			users := &User{Database: db}
-			req, _ := http.NewRequest("GET", "/v1/books/101", bodyReader)
+			req, _ := http.NewRequest("GET", "/v1/books/1", nil)
 
 			rr := httptest.NewRecorder()
 			mux := mux.NewRouter()
-			mux.Handle("/v1/books/101", RootHandler(users.GetOrUpdateBook))
+			mux.Handle("/v1/books/1", RootHandler(users.GetOrUpdateBook))
 			mux.ServeHTTP(rr, req)
 
 			Expect(rr.Code).To(BeEquivalentTo(200))
