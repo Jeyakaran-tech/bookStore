@@ -54,7 +54,7 @@ Cloud_sql_proxy is an utility for ensuring connections to your Google Cloud SQL.
 ## Unit Tests
 1. Unit tests has been scipted by using `Ginkgo/Gomega.` This provides BDD type of testing strategy which makes easier to read and understand.
 2. To mock the database environment, `sqlmock` has been used. Have a quick look about the library [here](https://pkg.go.dev/github.com/data-dog/go-sqlmock)
-3. Unit test coverage has been achieved at `73%`.
+3. Unit test coverage has been achieved at `76.7%`.
 
 ![image](./images/unittestCoverage.png)
 
@@ -78,6 +78,7 @@ Docker has been used for image creation. Refer to `Dockerfile` in the repository
 2. cloudbuild.yaml is used to create the docker image, push the image into Google container registry, and deploy into Cloud Run automatically.
 3. Unit test has been added to the CI, which will ensure the application is 100% tested, and ready to fire the deployment. 
 
+![image](./images/CD.png)
 
 # Important Information
 
